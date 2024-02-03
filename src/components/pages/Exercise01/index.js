@@ -12,7 +12,7 @@
  */
 
 import './assets/styles.css'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 export default function Exercise01 () {
   const movies = [
@@ -38,20 +38,7 @@ export default function Exercise01 () {
     }
   ]
 
-  const discountRules = [
-    {
-      m: [3, 2],
-      discount: 0.25
-    },
-    {
-      m: [2, 4, 1],
-      discount: 0.5
-    },
-    {
-      m: [4, 2],
-      discount: 0.1
-    } 
-  ]
+
 
   const [cart, setCart] = useState([
     {
@@ -62,7 +49,95 @@ export default function Exercise01 () {
     }
   ])
 
-  const getTotal = () => 0 // TODO: Implement this
+
+  const getTotalDiscounts = useMemo(() => {
+    const discountRules = [
+      { m: [3, 2], discount: 0.25 },
+      { m: [2, 4, 1], discount: 0.5 },
+      { m: [4, 2], discount: 0.1 } 
+    ];
+    // I'll consider that the discounts can only be applied one time per cart.
+    // Ex: if you have m1: [1,2,3] and m2: [1,2]
+    // - If in cart you have [1,2] only m2 will be applied.
+    // - If in cart you have [1,2,3] only m1 will be applied.
+    // - If in cart you have [1,1,2,2,3] both will be applied.
+    
+    // Discounts will be applied from max discount to min discount.
+    let total = 0;
+    const discountCart = JSON.parse(JSON.stringify(cart));
+    const discounts = discountRules.sort((a, b) => b.discount - a.discount);
+
+    discounts.forEach(disc => {
+      let canApply = true;
+      disc.m.forEach(m => {
+        const find = discountCart.find(product => product.id === m);
+        if(!find){
+          canApply = false;
+        } else if (find.quantity === 0) {
+          canApply = false;
+        }
+      });
+      if(canApply){
+        disc.m.forEach(m => {
+          const find = discountCart.find(product => product.id === m);
+          find.quantity = find.quantity - 1;
+        });
+        total += disc.discount;
+      }
+    });
+
+    return total;
+  }, [cart]);
+
+  const getTotal = useMemo(() => {
+    const total = cart.reduce((prev, item) => prev + item.price * item.quantity, 0);
+    
+    return total - getTotalDiscounts;
+  }, [cart, getTotalDiscounts]);
+
+
+
+  const addToCart = (product) => {
+    setCart(prevCart => {
+      const newCart = [...prevCart];
+      const findProduct = newCart.find(p => p.id === product.id);
+      if(findProduct){
+        const index = newCart.findIndex(p => p.id === product.id);
+        const newProduct = {
+          ...findProduct,
+          quantity: findProduct.quantity + 1
+        }
+        newCart.splice(index, 1, newProduct);
+      } else {
+        const newProduct = {
+          ...product,
+          quantity: 1
+        }
+        newCart.push(newProduct)
+      }
+      return newCart;
+    });
+  }
+
+  const decreaseFromCart = (product) => {
+    setCart(prevCart => {
+      const newCart = [...prevCart];
+      const findProduct = newCart.find(p => p.id === product.id);
+      if(findProduct){
+        const index = newCart.findIndex(p => p.id === product.id);
+        if(findProduct.quantity > 1){
+          const newProduct = {
+            ...findProduct,
+            quantity: findProduct.quantity - 1
+          }
+          newCart.splice(index, 1, newProduct);
+        } else {
+          newCart.splice(index, 1);
+        }
+      } 
+      return newCart;
+    });
+  }
 
   return (
     <section className="exercise01">
@@ -81,7 +156,7 @@ export default function Exercise01 () {
                   Price: ${o.price}
                 </li>
               </ul>
-              <button onClick={() => console.log('Add to cart', o)}>
+              <button onClick={() => addToCart(o)}>
                 Add to cart
               </button>
             </li>
@@ -104,13 +179,13 @@ export default function Exercise01 () {
                 </li>
               </ul>
               <div className="movies__cart-card-quantity">
-                <button onClick={() => console.log('Decrement quantity', x)}>
+                <button onClick={() => decreaseFromCart(x)}>
                   -
                 </button>
                 <span>
                   {x.quantity}
                 </span>
-                <button onClick={() => console.log('Increment quantity', x)}>
+                <button onClick={() => addToCart(x)}>
                   +
                 </button>
               </div>
@@ -118,7 +193,10 @@ export default function Exercise01 () {
           ))}
         </ul>
         <div className="movies__cart-total">
-          <p>Total: ${getTotal()}</p>
+          
+          <p>Total: ${getTotal}</p>
+          <br />
+          <p>Discounts: $-{getTotalDiscounts}</p>
         </div>
       </div>
     </section>
