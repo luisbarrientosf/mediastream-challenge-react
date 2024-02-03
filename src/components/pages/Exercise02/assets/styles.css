@@ -1,13 +1,39 @@
+body {
+  background-color: rgba(27,27,27,1);
+}
+
+
 .movie-library {
-  background-color: var(--black);
+  background-color: transparent;
   color: var(--white);
   min-height: 100vh;
-  padding: 2em;
+  max-height: 100vh;
+  z-index: 4;
+  position: absolute;
+  top: 0;
+  width: calc(100% - 8em);
+  padding-top: 4em;
+  padding-left: 4em;
+  padding-right: 4em;
+}
+
+#gradient {
+  position:absolute;
+  z-index:2;
+  right:0; bottom:0; left:0;
+  height:300px;
+  background: none;
+  background: -moz-linear-gradient(to bottom,  rgba(151, 215, 0,0) 0%, rgba(151, 215, 0,0) 50%, rgba(151, 215, 0,1) 95%);
+  background: -webkit-linear-gradient(top,  rgba(27,27,27,0) 0%,rgba(27,27,27,1) 80%);
+  background: -o-linear-gradient(top,  rgba(27,27,27,0) 0%,rgba(27,27,27,1) 80%);
+  background: -ms-linear-gradient(top,  rgba(27,27,27,0) 0%,rgba(27,27,27,1) 80%);
+  background: linear-gradient(to bottom,  rgba(27,27,27,0) 0%,rgba(27,27,27,1) 80%);
 }
 
 .movie-library__title {
   font-size: 2em;
   margin-bottom: 1em;
+  font-weight: 600;
 }
 
 .movie-library__actions {
@@ -17,41 +43,161 @@
 
 .movie-library__actions select {
   width: 100%;
-  padding: .25em;
+  padding: .5em;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  border-color: var(--ms-green);
+  border-width: 2px;
+  outline: none;
+
 }
 
 .movie-library__actions button {
+  background: none;
+  outline: none;
+  box-shadow: none;
   white-space: nowrap;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border-color: var(--ms-green);
+  background-color: var(--ms-green);
+  border-left-color: transparent;
+  border-width: 2px;
+  border-style: solid;
+  cursor: pointer;
+  width: 160px;
 }
 
 .movie-library__loading {
   text-align: center;
   width: 100%;
-  background-color: #222222;
   padding: 1.25em 0;
   margin: 2em 0;
 }
 
 .movie-library__list {
-  padding: 1em;
-  background-color: #222222;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 1.4em;
+  row-gap: 2em;
+  justify-content: space-between;
 }
 
 .movie-library__card {
   background-color: #333333;
-  margin-bottom: 1em;
-  display: flex;
+  display: inline-block;
   align-items: center;
+  width: 200px;
+  height: 300px;
+  border-radius: 5px;
+  box-shadow: 2px 2px rgba(0,0,0,0.3);
 }
 
 .movie-library__card img {
-  width: 10em;
+  width: 100%;
+  height: 300px;
+  border-radius: 5px;
 }
 
 .movie-library__card ul {
-  padding: 1em;
+  position: relative;
+  width: calc(100% - 1em);
+  height: 300px;
+  margin-top: -300px; 
+  background: -moz-linear-gradient(to bottom,  rgba(151, 215, 0,0) 0%, rgba(151, 215, 0,0) 50%, rgba(151, 215, 0,1) 95%);
+  background: -webkit-linear-gradient(to bottom,  rgba(151, 215, 0,0) 0%, rgba(151, 215, 0,0) 50%, rgba(151, 215, 0,1) 95%);
+  background: -o-linear-gradient(to bottom,  rgba(151, 215, 0,0) 0%, rgba(151, 215, 0,0) 50%, rgba(151, 215, 0,1) 95%);
+  background: -ms-linear-gradient(to bottom,  rgba(151, 215, 0,0) 0%, rgba(151, 215, 0,0) 50%, rgba(151, 215, 0,1) 95%);
+  background: linear-gradient(to bottom,  rgba(151, 215, 0,0) 0%, rgba(151, 215, 0,0) 50%, rgba(151, 215, 0,1) 95%);
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  padding-bottom: 0.5em;
 }
+
 
 .movie-library__card li {
   line-height: 120%;
+  font-size: 0.6em;
+  margin-bottom: 0.4em;
+}
+
+.movie-library__card li:first-child {
+  text-overflow: ellipsis;
+  line-height: 1em;
+  font-weight: 600;
+  font-size: 0.75em;
+  height: 0.9em;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+
+@media screen and (max-width: 785px) {
+  .movie-library__card {
+    width: 45%;
+    height: 300px;
+    min-width: 200px;
+  }
+  
+  .movie-library__card img {
+    width: 100%;
+    height: 300px;
+  }
+  
+  .movie-library__card ul {
+    width: calc(100% - 1em);
+    height: 300px;
+  }
+  
+}
+
+@media screen and (max-width: 564px) {
+  .movie-library {
+    width: calc(100% - 4em);
+    padding-top: 2em;
+    padding-left: 2em;
+    padding-right: 2em;
+  }
+  
+  .movie-library__card {
+    width: 45%;
+    height: 220px;
+    min-width: 150px;
+  }
+  
+  .movie-library__card img {
+    width: 100%;
+    height: 220px;
+  }
+  
+  .movie-library__card ul {
+    width: calc(100% - 1em);
+    height: 290px;
+  }
+}
+
+@media screen and (max-width: 400px) {
+
+  .movie-library__card {
+    width: 90%;
+    margin-left: 5%;
+    height: 400px;
+    min-width: 150px;
+  }
+  
+  .movie-library__card img {
+    width: 100%;
+    height: 400px;
+  }
+  
+  .movie-library__card ul {
+    width: calc(100% - 1em);
+    height: 290px;
+  }
 }

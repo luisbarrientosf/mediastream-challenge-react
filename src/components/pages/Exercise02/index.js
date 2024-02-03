@@ -13,64 +13,117 @@
  */
 
 import "./assets/styles.css";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function Exercise02 () {
-  const [movies, setMovies] = useState([])
-  const [fetchCount, setFetchCount] = useState(0)
-  const [loading, setLoading] = useState(false)
+  const [movies, setMovies] = useState(null);
+  const [genres, setGenres] = useState(null);
+  const [loadingGenres, setLoadingGenres] = useState(false);
+  const [loadingMovies, setLoadingMovies] = useState(false);
+  const [sort, setSort] = useState('asc');
+  const [selectedGenre, setSelectedGenre] = useState('all');
 
-  const handleMovieFetch = () => {
-    setLoading(true)
-    setFetchCount(fetchCount + 1)
-    console.log('Getting movies')
-    fetch('http://localhost:3001/movies?_limit=50')
-      .then(res => res.json())
-      .then(json => {
-        setMovies(json)
-        setLoading(false)
-      })
-      .catch(() => {
-        console.log('Run yarn movie-api for fake api')
-      })
-  }
+  useEffect(async () => {
+    if(!genres) return;
+    if(!movies && !loadingMovies) {
+      setLoadingMovies(true);
 
-  useEffect(() => {
-    handleMovieFetch()
-  }, [handleMovieFetch])
+      await fetch('http://localhost:3001/movies?_limit=50')
+        .then(res => res.json())
+        .then(json => {
+          setMovies(json);
+          console.log(json)
+          setLoadingMovies(false);
+        })
+        .catch(() => {
+          setLoadingMovies(false);
+        })
+    }
+  }, [genres, movies, loadingMovies])
+
+  useEffect(async ()=> {
+    if(!genres && !loadingGenres){
+      setLoadingGenres(true);
+
+      await fetch('http://localhost:3001/genres')
+        .then(res => res.json())
+        .then(json => {
+          setGenres(json);
+          setLoadingGenres(false);
+        })
+        .catch(() => {
+          setLoadingGenres(false);
+        })
+    }
+  }, [genres]);
+
+
+  const orderedMovies = useMemo(() => {
+    if(!movies) return [];
+    return movies.sort((a,b) => sort ==='asc' ? a.year - b.year : b.year - a.year);
+  }, [sort, movies]);
+
+  const filteredMovies = useMemo(() => {
+    if(!movies) return [];
+    if(selectedGenre === 'all') return orderedMovies;
+    return orderedMovies.filter(movie => movie.genres.find(genre => genre === selectedGenre));
+  }, [selectedGenre, orderedMovies, sort]);
 
   return (
-    <section className="movie-library">
-      <h1 className="movie-library__title">
-        Movie Library
-      </h1>
-      <div className="movie-library__actions">
-        <select name="genre" placeholder="Search by genre...">
-          <option value="genre1">Genre 1</option>
-        </select>
-        <button>Order Descending</button>
+    <>
+      
+      <div style={{ position: 'absolute', top: 0, width: '100%', height: '100vh', overflowY: 'hidden'}}>
+        <img src={require('./assets/mountains.jpeg').default} alt='' style={{ width: '100%', height: 'auto' }}/>
+        <div id='gradient' />
       </div>
-      {loading ? (
+
+      <section className="movie-library">
+        <h1 className="movie-library__title">
+          Movie Library
+        </h1>
+
+        <div className="movie-library__actions">
+          { !genres ? (
+            <>Loading...</>
+          ): (
+            <>
+              <select name="genre" placeholder="Search by genre..." onChange={e => setSelectedGenre(e.target.value)}>
+                <option value="all">All</option>
+                { genres && genres.map(genre => <option key={genre} value={genre}>{genre}</option>)}
+              </select>
+              <button onClick={() => setSort(prevSort => prevSort === 'asc' ? 'desc' : 'asc')}>
+                Year { sort === 'asc' ? 'Ascending' : 'Descending'}
+              </button>
+            </>
+          )}
+        </div>
+
+      {loadingMovies ? (
         <div className="movie-library__loading">
           <p>Loading...</p>
-          <p>Fetched {fetchCount} times</p>
         </div>
       ) : (
         <ul className="movie-library__list">
-          {movies.map(movie => (
+          {movies && filteredMovies.map(movie => (
             <li key={movie.id} className="movie-library__card">
-              <img src={movie.posterUrl} alt={movie.title} />
+              <img
+                src={movie.posterUrl}
+                alt={movie.title}
+                onError={({ currentTarget }) => {
+                  currentTarget.onerror = null;
+                  currentTarget.src=require('./assets/mountains.jpeg').default;
+                }}
+              />
               <ul>
-                <li>ID: {movie.id}</li>
-                <li>Title: {movie.title}</li>
-                <li>Year: {movie.year}</li>
-                <li>Runtime: {movie.runtime}</li>
-                <li>Genres: {movie.genres.join(', ')}</li>
+                <li>{movie.title}</li>
+                <li>{movie.genres.join(', ')}</li>
+                <li>{movie.year}</li>
               </ul>
             </li>
           ))}
         </ul>
       )}
     </section>
+    </>
   )
 }
